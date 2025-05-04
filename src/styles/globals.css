@@ -24,3 +24,69 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Estilos predeterminados (Light Mode) */
+body {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+.text-black {
+  color: #000000;
+}
+
+/* Estilos para Dark Mode */
+body.dark {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+body.dark .bg-white {
+  background-color: #333333;
+}
+
+body.dark .text-black {
+  color: #ffffff;
+}
+
+body.dark .text-gray-600 {
+  color: #b3b3b3;
+}
+
+body.dark .bg-gray-100 {
+  background-color: #2c2c2c;
+}
+
+body.dark .bg-gray-700 {
+  background-color: #3b3b3b;
+}
+
+body.dark .bg-blue-500 {
+  background-color: #3b82f6;
+}
+
+/* Otros estilos generales para el modo claro y oscuro */
+.bg-blue-500 {
+  background-color: #1D4ED8;
+}
+
+.text-gray-600 {
+  color: #4B5563;
+}
+
+/* Modal Styles */
+.dialog-overlay {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.dialog-panel {
+  background-color: #ffffff;
+}
+
+body.dark .dialog-panel {
+  background-color: #333333;
+}

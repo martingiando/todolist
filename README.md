@@ -1,40 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Task Manager App
 
-## Getting Started
+## Descripción
 
-First, run the development server:
+Task Manager es una aplicación sencilla para gestionar tareas. Permite a los usuarios agregar, visualizar, editar, eliminar y marcar tareas como completadas. La aplicación está construida usando **Next.js** para el frontend y backend, y la persistencia de datos se maneja a través de una base de datos (puedes usar MongoDB u otra base de datos).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tecnologías Utilizadas
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Frontend y Backend**: Next.js (utilizando API Routes para el backend)
+- **Estilos**: Tailwind CSS
+- **Base de Datos**: MongoDB (o cualquier otra base de datos que elijas)
+- **Iconos**: React Icons (para los iconos de las tareas)
+- **Gestión de Estado**: React `useState`, `useEffect`, y `react-hook-form` para la gestión de formularios
+- **Dark Mode/Light Mode**: Implementado con localStorage para persistencia del tema
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Funcionalidades
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+### 🏠 Home (Vista Principal)
+- Visualiza el listado de todas las tareas.
+- Las tareas pueden ser filtradas por su estado (completada o pendiente).
+  
+### 📝 Formulario (Crear y Editar Tarea)
+- Crear una nueva tarea.
+- Editar una tarea existente.
+- Validación de formulario para asegurar que el título es obligatorio.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+### 🔨 CRUD (Operaciones sobre Tareas)
+- **Crear**: Agregar nuevas tareas.
+- **Leer**: Ver la lista de todas las tareas.
+- **Actualizar**: Editar tareas existentes.
+- **Eliminar**: Borrar tareas de la lista.
+- **Completar/Desmarcar**: Cambiar el estado de las tareas entre "Pendiente" y "Completada".
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🌒/🌞 Dark Mode / Light Mode
+- Permite al usuario cambiar entre los modos oscuro y claro.
+- El tema seleccionado se guarda en `localStorage` para persistencia entre sesiones.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+### 💾 Persistencia de Datos
+- Los datos se guardan de manera persistente usando una base de datos (MongoDB o la que prefieras).
+- Las operaciones CRUD se realizan a través de las rutas de la API en **Next.js**.
