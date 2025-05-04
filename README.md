@@ -38,3 +38,24 @@ Task Manager es una aplicación sencilla para gestionar tareas. Permite a los us
 ### 💾 Persistencia de Datos
 - Los datos se guardan de manera persistente usando una base de datos (MongoDB o la que prefieras).
 - Las operaciones CRUD se realizan a través de las rutas de la API en **Next.js**.
+
+## 🚀 Cómo ejecutar el proyecto localmente
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/martingiando/todolist.git
+   cd todo-app
+   ```
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+3. Configura tu base de datos (MongoDB o la que elijas) y actualiza las variables de entorno en un archivo `.env.local`:
+   ```bash
+   MONGODB_URI=tu_uri_de_mongodb
+   ```
+4. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+5. Abre tu navegador y ve a `http://localhost:3000`.
