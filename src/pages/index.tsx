@@ -3,6 +3,7 @@ import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useForm } from "react-hook-form";
 import TaskItem from '@/components/tasks/TaskItem';
 import ThemeToggle from '@/components/theme/ThemeToggle';
+import { FaSpinner } from "react-icons/fa";
 
 type Task = {
   _id: string;
@@ -18,6 +19,8 @@ export default function HomePage() {
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const { register, handleSubmit, reset, setValue } = useForm<Task>();
 
   useEffect(() => {
@@ -51,57 +54,52 @@ export default function HomePage() {
   };
 
   const onSubmit = async (data: Task) => {
-    if (isEditing && taskToEdit) {
-      await updateTask(taskToEdit._id, data);
-    } else {
-      await createTask(data);
+    setIsLoading(true);
+    try {
+      if (isEditing && taskToEdit) {
+        await updateTask(taskToEdit._id, data);
+      } else {
+        await createTask(data);
+      }
+      reset();
+      setIsOpen(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-    reset();
-    setIsOpen(false);
   };
 
   const createTask = async (task: { title: string; description?: string }) => {
-    try {
-      const res = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(task),
-      });
+    const res = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(task),
+    });
 
-      if (!res.ok) throw new Error("Error al crear tarea");
+    if (!res.ok) throw new Error("Error al crear tarea");
 
-      const newTask = await res.json();
-      setTasks((prev) => [...prev, newTask]);
-    } catch (err) {
-      console.error(err);
-    }
+    const newTask = await res.json();
+    setTasks((prev) => [...prev, newTask]);
   };
 
   const updateTask = async (id: string, task: Partial<Task>) => {
-    try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(task),
-      });
+    const res = await fetch(`/api/tasks/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(task),
+    });
 
-      if (!res.ok) throw new Error("Error al actualizar tarea");
+    if (!res.ok) throw new Error("Error al actualizar tarea");
 
-      const updated = await res.json();
-      setTasks((prev) => prev.map(t => t._id === id ? updated : t));
-    } catch (err) {
-      console.error("Error al actualizar tarea:", err);
-    }
+    const updated = await res.json();
+    setTasks((prev) => prev.map(t => t._id === id ? updated : t));
   };
 
   const deleteTask = async (id: string) => {
-    try {
-      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Error al eliminar tarea");
-      setTasks(tasks.filter((task) => task._id !== id));
-    } catch (err) {
-      console.error("Error al eliminar tarea:", err);
-    }
+    const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Error al eliminar tarea");
+    setTasks(tasks.filter((task) => task._id !== id));
   };
 
   const toggleTaskCompletion = async (task: Task) => {
@@ -218,8 +216,10 @@ export default function HomePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer"
+                  className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer flex items-center justify-center min-w-[100px]"
+                  disabled={isLoading}
                 >
+                  {isLoading ? <FaSpinner className="animate-spin mr-2" /> : null}
                   {isEditing ? "Actualizar" : "Guardar"}
                 </button>
               </div>
