@@ -14,7 +14,12 @@ type TaskItemProps = {
   onToggleComplete: (task: Task) => void;
 };
 
-const TaskItem = ({ task, onDelete, onEdit, onToggleComplete }: TaskItemProps) => {
+const TaskItem = ({
+  task,
+  onDelete,
+  onEdit,
+  onToggleComplete,
+}: TaskItemProps) => {
   return (
     <li className="bg-white p-4 rounded shadow flex justify-between items-center relative">
       <button
@@ -35,7 +40,9 @@ const TaskItem = ({ task, onDelete, onEdit, onToggleComplete }: TaskItemProps) =
 
       <div className="flex-grow">
         <h2 className="font-semibold">{task.title}</h2>
-        {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
+        {task.description && (
+          <p className="text-sm text-gray-600">{task.description}</p>
+        )}
       </div>
 
       <span

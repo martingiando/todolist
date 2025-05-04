@@ -21,7 +21,8 @@ export default function HomePage() {
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true); // 👈 Nuevo estado
+  const [isFetching, setIsFetching] = useState(true);
+  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all"); // Estado para el filtro
 
   const { register, handleSubmit, reset, setValue } = useForm<Task>();
 
@@ -29,19 +30,19 @@ export default function HomePage() {
     const fetchTasks = async () => {
       setIsFetching(true);
       try {
-        const res = await fetch("/api/tasks");
+        const res = await fetch(`/api/tasks?filter=${filter}`); // Agregar el filtro como query
         if (!res.ok) throw new Error("Error al obtener tareas");
         const data = await res.json();
         setTasks(data);
       } catch (err) {
         toast.error("Error al cargar tareas");
       } finally {
-        setIsFetching(false); // 👈 Oculta el spinner al terminar
+        setIsFetching(false);
       }
     };
 
     fetchTasks();
-  }, []);
+  }, [filter]); // El efecto depende del filtro
 
   const openCreateModal = () => {
     reset();
@@ -123,7 +124,10 @@ export default function HomePage() {
 
   const confirmToggleTaskCompletion = async () => {
     if (taskToComplete) {
-      const updatedTask = { ...taskToComplete, completed: !taskToComplete.completed };
+      const updatedTask = {
+        ...taskToComplete,
+        completed: !taskToComplete.completed,
+      };
       await updateTask(taskToComplete._id, updatedTask);
       toast.success("Estado actualizado");
       setIsConfirmCompleteOpen(false);
@@ -146,6 +150,32 @@ export default function HomePage() {
           >
             Crear tarea
           </button>
+          <select
+            onChange={(e) =>
+              setFilter(e.target.value as "all" | "completed" | "pending")
+            }
+            value={filter}
+            className="border rounded p-2 bg-white text-black focus:ring-2 focus:ring-blue-500"
+          >
+            <option
+              value="all"
+              className="bg-white text-black hover:bg-gray-100"
+            >
+              Todas
+            </option>
+            <option
+              value="completed"
+              className="bg-white text-black hover:bg-gray-100"
+            >
+              Completadas
+            </option>
+            <option
+              value="pending"
+              className="bg-white text-black hover:bg-gray-100"
+            >
+              Pendientes
+            </option>
+          </select>
         </div>
 
         {isFetching ? (
@@ -170,41 +200,77 @@ export default function HomePage() {
       </div>
 
       {/* Modal Confirmar Estado */}
-      <Dialog open={isConfirmCompleteOpen} onClose={() => setIsConfirmCompleteOpen(false)} className="relative z-50">
+      <Dialog
+        open={isConfirmCompleteOpen}
+        onClose={() => setIsConfirmCompleteOpen(false)}
+        className="relative z-50"
+      >
         <div className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
             <DialogTitle className="text-lg font-bold mb-4 text-black">
               Confirmar cambio de estado
             </DialogTitle>
-            <p className="text-sm text-black mb-4">¿Estás seguro de cambiar el estado de esta tarea?</p>
+            <p className="text-sm text-black mb-4">
+              ¿Estás seguro de cambiar el estado de esta tarea?
+            </p>
             <div className="flex justify-end space-x-2">
-              <button onClick={() => setIsConfirmCompleteOpen(false)} className="px-4 py-2 border rounded text-black">Cancelar</button>
-              <button onClick={confirmToggleTaskCompletion} className="px-4 py-2 bg-blue-500 text-white rounded">Confirmar</button>
+              <button
+                onClick={() => setIsConfirmCompleteOpen(false)}
+                className="px-4 py-2 border rounded text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmToggleTaskCompletion}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Confirmar
+              </button>
             </div>
           </DialogPanel>
         </div>
       </Dialog>
 
       {/* Modal Confirmar Eliminación */}
-      <Dialog open={isConfirmDeleteOpen} onClose={() => setIsConfirmDeleteOpen(false)} className="relative z-50">
+      <Dialog
+        open={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        className="relative z-50"
+      >
         <div className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
             <DialogTitle className="text-lg font-bold mb-4 text-black">
               Confirmar eliminación
             </DialogTitle>
-            <p className="text-sm text-black mb-4">¿Estás seguro de eliminar esta tarea?</p>
+            <p className="text-sm text-black mb-4">
+              ¿Estás seguro de eliminar esta tarea?
+            </p>
             <div className="flex justify-end space-x-2">
-              <button onClick={() => setIsConfirmDeleteOpen(false)} className="px-4 py-2 border rounded text-black cursor-pointer">Cancelar</button>
-              <button onClick={() => deleteTask(taskToDelete!._id)} className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer">Eliminar</button>
+              <button
+                onClick={() => setIsConfirmDeleteOpen(false)}
+                className="px-4 py-2 border rounded text-black cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => deleteTask(taskToDelete!._id)}
+                className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
+              >
+                Eliminar
+              </button>
             </div>
           </DialogPanel>
         </div>
       </Dialog>
 
       {/* Modal Crear/Editar */}
-      <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
+      <Dialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        className="relative z-50"
+      >
         <div className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
@@ -214,22 +280,38 @@ export default function HomePage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-sm text-black">Título</label>
-                <input {...register("title", { required: true })} className="w-full p-2 border rounded text-black" />
+                <input
+                  {...register("title", { required: true })}
+                  className="w-full p-2 border rounded text-black"
+                />
               </div>
               <div>
                 <label className="block text-sm text-black">Descripción</label>
-                <textarea {...register("description")} className="w-full p-2 border rounded text-black" />
+                <textarea
+                  {...register("description")}
+                  className="w-full p-2 border rounded text-black"
+                />
               </div>
               <div className="flex items-center space-x-2 text-black">
                 <input type="checkbox" {...register("completed")} />
                 <label>¿Completada?</label>
               </div>
               <div className="flex justify-end space-x-2">
-                <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded text-black cursor-pointer">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2 border rounded text-black cursor-pointer"
+                >
                   Cancelar
                 </button>
-                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-500 text-white rounded flex items-center gap-2 cursor-pointer">
-                  {loading && <span className="loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-500 text-white rounded flex items-center gap-2 cursor-pointer"
+                >
+                  {loading && (
+                    <span className="loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  )}
                   {isEditing ? "Actualizar" : "Guardar"}
                 </button>
               </div>

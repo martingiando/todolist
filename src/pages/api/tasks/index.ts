@@ -5,19 +5,22 @@ import Cors from "cors";
 
 // Inicializa el middleware CORS
 const cors = Cors({
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  origin: '*',  // Permite todas las fuentes, cámbialo a un dominio específico si lo necesitas
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: "*", // Permite todas las fuentes, cámbialo a un dominio específico si lo necesitas
 });
 
 // Función para ejecutar el middleware de CORS
 const runMiddleware = (req: NextApiRequest, res: NextApiResponse, fn: any) =>
   new Promise((resolve, reject) => {
     fn(req, res, (result: any) =>
-      result instanceof Error ? reject(result) : resolve(result)
+      result instanceof Error ? reject(result) : resolve(result),
     );
   });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   // Ejecuta el middleware de CORS
   await runMiddleware(req, res, cors);
 
@@ -25,13 +28,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === "GET") {
-      try {
-        const tasks: Array<typeof Task> = await Task.find();
-        res.status(200).json(tasks);
-      } catch (error) {
-        console.error("Error al obtener tareas:", error);
-        res.status(401).json({ message: "No autorizado", error: error instanceof Error ? error.message : "Error desconocido" });
-      }
+      const { filter } = req.query;
+
+      const query =
+        filter && filter !== "all" ? { completed: filter === "completed" } : {};
+
+      const tasks: Array<typeof Task> = await Task.find(query);
+      res.status(200).json(tasks);
     }
 
     if (req.method === "POST") {

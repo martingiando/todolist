@@ -8,7 +8,7 @@ type Data = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<Data>,
 ) {
   try {
     await connectDB(); // Intentamos conectar a la base de datos

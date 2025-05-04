@@ -12,7 +12,9 @@ const ThemeToggle = () => {
       document.body.classList.add(savedTheme);
     } else {
       // Si no hay tema guardado, comprobar la preferencia del sistema
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
       setIsDarkMode(prefersDark);
       document.body.classList.add(prefersDark ? "dark" : "light");
     }

@@ -10,9 +10,9 @@ const TaskSchema = new mongoose.Schema(
     completed: {
       type: Boolean,
       default: false,
-    }
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.Task || mongoose.model("Task", TaskSchema);
