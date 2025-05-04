@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useForm } from "react-hook-form";
 import TaskItem from "@/components/tasks/TaskItem";
-import ThemeToggle from "@/components/theme/ThemeToggle";
 import toast from "react-hot-toast";
 
 type Task = {
@@ -137,10 +136,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-black p-4">
-      <div className="flex justify-end mb-4">
-        <ThemeToggle />
-      </div>
+    <>
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Mis Tareas</h1>
@@ -241,6 +237,6 @@ export default function HomePage() {
           </DialogPanel>
         </div>
       </Dialog>
-    </div>
+    </>
   );
 }
