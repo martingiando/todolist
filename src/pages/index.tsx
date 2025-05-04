@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useForm } from "react-hook-form";
-import TaskItem from '@/components/tasks/TaskItem';
-import ThemeToggle from '@/components/theme/ThemeToggle';
-import { FaSpinner } from "react-icons/fa";
+import TaskItem from "@/components/tasks/TaskItem";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import toast from "react-hot-toast";
 
 type Task = {
   _id: string;
@@ -18,8 +18,10 @@ export default function HomePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const { register, handleSubmit, reset, setValue } = useForm<Task>();
 
@@ -31,7 +33,7 @@ export default function HomePage() {
         const data = await res.json();
         setTasks(data);
       } catch (err) {
-        console.error("Error cargando tareas:", err);
+        toast.error("Error al cargar tareas");
       }
     };
 
@@ -54,19 +56,21 @@ export default function HomePage() {
   };
 
   const onSubmit = async (data: Task) => {
-    setIsLoading(true);
+    setLoading(true);
     try {
       if (isEditing && taskToEdit) {
         await updateTask(taskToEdit._id, data);
+        toast.success("Tarea actualizada");
       } else {
         await createTask(data);
+        toast.success("Tarea creada");
       }
       reset();
       setIsOpen(false);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Error al guardar tarea");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -93,30 +97,39 @@ export default function HomePage() {
     if (!res.ok) throw new Error("Error al actualizar tarea");
 
     const updated = await res.json();
-    setTasks((prev) => prev.map(t => t._id === id ? updated : t));
+    setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)));
   };
 
   const deleteTask = async (id: string) => {
-    const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-    if (!res.ok) throw new Error("Error al eliminar tarea");
-    setTasks(tasks.filter((task) => task._id !== id));
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Error al eliminar tarea");
+      setTasks(tasks.filter((task) => task._id !== id));
+      toast.success("Tarea eliminada");
+    } catch (err) {
+      toast.error("Error al eliminar tarea");
+    } finally {
+      setIsConfirmDeleteOpen(false);
+    }
   };
 
-  const toggleTaskCompletion = async (task: Task) => {
+  const toggleTaskCompletion = (task: Task) => {
     setTaskToComplete(task);
-    setIsConfirmModalOpen(true);
+    setIsConfirmCompleteOpen(true);
   };
 
   const confirmToggleTaskCompletion = async () => {
     if (taskToComplete) {
       const updatedTask = { ...taskToComplete, completed: !taskToComplete.completed };
       await updateTask(taskToComplete._id, updatedTask);
-      setIsConfirmModalOpen(false);
+      toast.success("Estado actualizado");
+      setIsConfirmCompleteOpen(false);
     }
   };
 
-  const cancelToggleTaskCompletion = () => {
-    setIsConfirmModalOpen(false);
+  const confirmDeleteTask = (task: Task) => {
+    setTaskToDelete(task);
+    setIsConfirmDeleteOpen(true);
   };
 
   return (
@@ -143,7 +156,7 @@ export default function HomePage() {
               <TaskItem
                 key={task._id}
                 task={task}
-                onDelete={deleteTask}
+                onDelete={confirmDeleteTask}
                 onEdit={openEditModal}
                 onToggleComplete={toggleTaskCompletion}
               />
@@ -152,36 +165,43 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Modal de confirmación */}
-      <Dialog open={isConfirmModalOpen} onClose={cancelToggleTaskCompletion} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      {/* Modal Confirmar Estado */}
+      <Dialog open={isConfirmCompleteOpen} onClose={() => setIsConfirmCompleteOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
             <DialogTitle className="text-lg font-bold mb-4 text-black">
               Confirmar cambio de estado
             </DialogTitle>
-            <p className="text-sm text-black mb-4">¿Estás seguro de que deseas cambiar el estado de esta tarea?</p>
+            <p className="text-sm text-black mb-4">¿Estás seguro de cambiar el estado de esta tarea?</p>
             <div className="flex justify-end space-x-2">
-              <button
-                onClick={cancelToggleTaskCompletion}
-                className="px-4 py-2 border rounded text-black cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmToggleTaskCompletion}
-                className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer"
-              >
-                Confirmar
-              </button>
+              <button onClick={() => setIsConfirmCompleteOpen(false)} className="px-4 py-2 border rounded text-black">Cancelar</button>
+              <button onClick={confirmToggleTaskCompletion} className="px-4 py-2 bg-blue-500 text-white rounded">Confirmar</button>
             </div>
           </DialogPanel>
         </div>
       </Dialog>
 
-      {/* Modal para crear o editar tarea */}
+      {/* Modal Confirmar Eliminación */}
+      <Dialog open={isConfirmDeleteOpen} onClose={() => setIsConfirmDeleteOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
+            <DialogTitle className="text-lg font-bold mb-4 text-black">
+              Confirmar eliminación
+            </DialogTitle>
+            <p className="text-sm text-black mb-4">¿Estás seguro de eliminar esta tarea?</p>
+            <div className="flex justify-end space-x-2">
+              <button onClick={() => setIsConfirmDeleteOpen(false)} className="px-4 py-2 border rounded text-black cursor-pointer">Cancelar</button>
+              <button onClick={() => deleteTask(taskToDelete!._id)} className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer">Eliminar</button>
+            </div>
+          </DialogPanel>
+        </div>
+      </Dialog>
+
+      {/* Modal Crear/Editar */}
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 bg-black/30" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
             <DialogTitle className="text-lg font-bold mb-4 text-black">
@@ -190,36 +210,22 @@ export default function HomePage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-sm text-black">Título</label>
-                <input
-                  {...register("title", { required: true })}
-                  className="w-full p-2 border rounded text-black"
-                />
+                <input {...register("title", { required: true })} className="w-full p-2 border rounded text-black" />
               </div>
               <div>
                 <label className="block text-sm text-black">Descripción</label>
-                <textarea
-                  {...register("description")}
-                  className="w-full p-2 border rounded text-black"
-                />
+                <textarea {...register("description")} className="w-full p-2 border rounded text-black" />
               </div>
               <div className="flex items-center space-x-2 text-black">
                 <input type="checkbox" {...register("completed")} />
                 <label>¿Completada?</label>
               </div>
               <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 border rounded text-black cursor-pointer"
-                >
+                <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded text-black cursor-pointer">
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer flex items-center justify-center min-w-[100px]"
-                  disabled={isLoading}
-                >
-                  {isLoading ? <FaSpinner className="animate-spin mr-2" /> : null}
+                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-500 text-white rounded flex items-center gap-2 cursor-pointer">
+                  {loading && <span className="loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
                   {isEditing ? "Actualizar" : "Guardar"}
                 </button>
               </div>

@@ -9,20 +9,18 @@ type Task = {
 
 type TaskItemProps = {
   task: Task;
-  onDelete: (id: string) => void;
+  onDelete: (task: Task) => void;
   onEdit: (task: Task) => void;
   onToggleComplete: (task: Task) => void;
 };
 
 const TaskItem = ({ task, onDelete, onEdit, onToggleComplete }: TaskItemProps) => {
   return (
-    <li
-      key={task._id}
-      className="bg-white p-4 rounded shadow flex justify-between items-center relative"
-    >
+    <li className="bg-white p-4 rounded shadow flex justify-between items-center relative">
       <button
-        onClick={() => onDelete(task._id)}
+        onClick={() => onDelete(task)}
         className="absolute top-6 right-1 text-red-500 p-1 hover:bg-red-100 rounded cursor-pointer"
+        title="Eliminar"
       >
         <FaTrash />
       </button>
@@ -30,15 +28,14 @@ const TaskItem = ({ task, onDelete, onEdit, onToggleComplete }: TaskItemProps) =
       <button
         onClick={() => onEdit(task)}
         className="absolute top-6 right-8 text-blue-500 p-1 hover:bg-blue-100 rounded cursor-pointer"
+        title="Editar"
       >
         <FaEdit />
       </button>
 
       <div className="flex-grow">
         <h2 className="font-semibold">{task.title}</h2>
-        {task.description && (
-          <p className="text-sm text-gray-600">{task.description}</p>
-        )}
+        {task.description && <p className="text-sm text-gray-600">{task.description}</p>}
       </div>
 
       <span
