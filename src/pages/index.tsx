@@ -22,11 +22,13 @@ export default function HomePage() {
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true); // 👈 Nuevo estado
 
   const { register, handleSubmit, reset, setValue } = useForm<Task>();
 
   useEffect(() => {
     const fetchTasks = async () => {
+      setIsFetching(true);
       try {
         const res = await fetch("/api/tasks");
         if (!res.ok) throw new Error("Error al obtener tareas");
@@ -34,6 +36,8 @@ export default function HomePage() {
         setTasks(data);
       } catch (err) {
         toast.error("Error al cargar tareas");
+      } finally {
+        setIsFetching(false); // 👈 Oculta el spinner al terminar
       }
     };
 
@@ -148,7 +152,11 @@ export default function HomePage() {
           </button>
         </div>
 
-        {tasks.length === 0 ? (
+        {isFetching ? (
+          <div className="flex justify-center py-8">
+            <div className="loader w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : tasks.length === 0 ? (
           <p className="text-gray-600">No hay tareas aún.</p>
         ) : (
           <ul className="space-y-2">
