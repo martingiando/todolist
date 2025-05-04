@@ -1,191 +1,195 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { useForm } from "react-hook-form";
-import TaskItem from "@/components/tasks/TaskItem";
-import toast from "react-hot-toast";
+import { useState, useEffect } from 'react'
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react'
+import { useForm } from 'react-hook-form'
+import TaskItem from '@/components/tasks/TaskItem'
+import toast from 'react-hot-toast'
 
 type Task = {
-  _id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-};
+  _id: string
+  title: string
+  description?: string
+  completed: boolean
+}
 
 export default function HomePage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
-  const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false);
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [filter, setFilter] = useState<"all" | "completed" | "pending">("all"); // Estado para el filtro
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
+  const [taskToComplete, setTaskToComplete] = useState<Task | null>(null)
+  const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false)
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
+  const [filter, setFilter] = useState<'all' | 'completed' | 'pending'>('all') // Estado para el filtro
 
-  const { register, handleSubmit, reset, setValue } = useForm<Task>();
+  const { register, handleSubmit, reset, setValue } = useForm<Task>()
 
   useEffect(() => {
     const fetchTasks = async () => {
-      setIsFetching(true);
+      setIsFetching(true)
       try {
-        const res = await fetch(`/api/tasks?filter=${filter}`); // Agregar el filtro como query
-        if (!res.ok) throw new Error("Error al obtener tareas");
-        const data = await res.json();
-        setTasks(data);
+        const res = await fetch(`/api/tasks?filter=${filter}`) // Agregar el filtro como query
+        if (!res.ok) throw new Error('Error al obtener tareas')
+        const data = await res.json()
+        setTasks(data)
       } catch (err) {
-        toast.error("Error al cargar tareas");
+        toast.error('Error al cargar tareas')
       } finally {
-        setIsFetching(false);
+        setIsFetching(false)
       }
-    };
+    }
 
-    fetchTasks();
-  }, [filter]); // El efecto depende del filtro
+    fetchTasks()
+  }, [filter]) // El efecto depende del filtro
 
   const openCreateModal = () => {
-    reset();
-    setIsEditing(false);
-    setIsOpen(true);
-  };
+    reset()
+    setIsEditing(false)
+    setIsOpen(true)
+  }
 
   const openEditModal = (task: Task) => {
-    setIsEditing(true);
-    setTaskToEdit(task);
-    setValue("title", task.title);
-    setValue("description", task.description || "");
-    setValue("completed", task.completed);
-    setIsOpen(true);
-  };
+    setIsEditing(true)
+    setTaskToEdit(task)
+    setValue('title', task.title)
+    setValue('description', task.description || '')
+    setValue('completed', task.completed)
+    setIsOpen(true)
+  }
 
   const onSubmit = async (data: Task) => {
-    setLoading(true);
+    setLoading(true)
     try {
       if (isEditing && taskToEdit) {
-        await updateTask(taskToEdit._id, data);
-        toast.success("Tarea actualizada");
+        await updateTask(taskToEdit._id, data)
+        toast.success('Tarea actualizada')
       } else {
-        await createTask(data);
-        toast.success("Tarea creada");
+        await createTask(data)
+        toast.success('Tarea creada')
       }
-      reset();
-      setIsOpen(false);
+      reset()
+      setIsOpen(false)
     } catch {
-      toast.error("Error al guardar tarea");
+      toast.error('Error al guardar tarea')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const createTask = async (task: { title: string; description?: string }) => {
-    const res = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(task),
-    });
+    })
 
-    if (!res.ok) throw new Error("Error al crear tarea");
+    if (!res.ok) throw new Error('Error al crear tarea')
 
-    const newTask = await res.json();
-    setTasks((prev) => [...prev, newTask]);
-  };
+    const newTask = await res.json()
+    setTasks((prev) => [...prev, newTask])
+  }
 
   const updateTask = async (id: string, task: Partial<Task>) => {
     const res = await fetch(`/api/tasks/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(task),
-    });
+    })
 
-    if (!res.ok) throw new Error("Error al actualizar tarea");
+    if (!res.ok) throw new Error('Error al actualizar tarea')
 
-    const updated = await res.json();
-    setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)));
-  };
+    const updated = await res.json()
+    setTasks((prev) => prev.map((t) => (t._id === id ? updated : t)))
+  }
 
   const deleteTask = async (id: string) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Error al eliminar tarea");
-      setTasks(tasks.filter((task) => task._id !== id));
-      toast.success("Tarea eliminada");
+      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Error al eliminar tarea')
+      setTasks(tasks.filter((task) => task._id !== id))
+      toast.success('Tarea eliminada')
     } catch (err) {
-      toast.error("Error al eliminar tarea");
+      toast.error('Error al eliminar tarea')
     } finally {
-      setIsConfirmDeleteOpen(false);
+      setIsConfirmDeleteOpen(false)
     }
-  };
+  }
 
   const toggleTaskCompletion = (task: Task) => {
-    setTaskToComplete(task);
-    setIsConfirmCompleteOpen(true);
-  };
+    setTaskToComplete(task)
+    setIsConfirmCompleteOpen(true)
+  }
 
   const confirmToggleTaskCompletion = async () => {
     if (taskToComplete) {
       const updatedTask = {
         ...taskToComplete,
         completed: !taskToComplete.completed,
-      };
-      await updateTask(taskToComplete._id, updatedTask);
-      toast.success("Estado actualizado");
-      setIsConfirmCompleteOpen(false);
+      }
+      await updateTask(taskToComplete._id, updatedTask)
+      toast.success('Estado actualizado')
+      setIsConfirmCompleteOpen(false)
     }
-  };
+  }
 
   const confirmDeleteTask = (task: Task) => {
-    setTaskToDelete(task);
-    setIsConfirmDeleteOpen(true);
-  };
+    setTaskToDelete(task)
+    setIsConfirmDeleteOpen(true)
+  }
 
   return (
     <>
-      <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Mis Tareas</h1>
-          <button
-            onClick={openCreateModal}
-            className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
-          >
-            Crear tarea
-          </button>
-          <select
-            onChange={(e) =>
-              setFilter(e.target.value as "all" | "completed" | "pending")
-            }
-            value={filter}
-            className="border rounded p-2 bg-white text-black focus:ring-2 focus:ring-blue-500"
-          >
-            <option
-              value="all"
-              className="bg-white text-black hover:bg-gray-100"
+      <div className='max-w-2xl mx-auto'>
+        <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4'>
+          <h1 className='text-2xl font-bold text-center sm:text-left'>
+            Mis Tareas
+          </h1>
+          <div className='flex flex-col sm:flex-row gap-2'>
+            <button
+              onClick={openCreateModal}
+              className='bg-blue-500 text-white px-4 py-2 rounded cursor-pointer'
             >
-              Todas
-            </option>
-            <option
-              value="completed"
-              className="bg-white text-black hover:bg-gray-100"
+              Crear tarea
+            </button>
+            <select
+              onChange={(e) =>
+                setFilter(e.target.value as 'all' | 'completed' | 'pending')
+              }
+              value={filter}
+              className='border rounded p-2 bg-white text-black focus:ring-2 focus:ring-blue-500'
             >
-              Completadas
-            </option>
-            <option
-              value="pending"
-              className="bg-white text-black hover:bg-gray-100"
-            >
-              Pendientes
-            </option>
-          </select>
+              <option
+                value='all'
+                className='bg-white text-black hover:bg-gray-100'
+              >
+                Todas
+              </option>
+              <option
+                value='completed'
+                className='bg-white text-black hover:bg-gray-100'
+              >
+                Completadas
+              </option>
+              <option
+                value='pending'
+                className='bg-white text-black hover:bg-gray-100'
+              >
+                Pendientes
+              </option>
+            </select>
+          </div>
         </div>
 
         {isFetching ? (
-          <div className="flex justify-center py-8">
-            <div className="loader w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className='flex justify-center py-8'>
+            <div className='loader w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin' />
           </div>
         ) : tasks.length === 0 ? (
-          <p className="text-gray-600">No hay tareas aún.</p>
+          <p className='text-gray-600'>No hay tareas aún.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul className='space-y-2'>
             {tasks.map((task) => (
               <TaskItem
                 key={task._id}
@@ -203,27 +207,27 @@ export default function HomePage() {
       <Dialog
         open={isConfirmCompleteOpen}
         onClose={() => setIsConfirmCompleteOpen(false)}
-        className="relative z-50"
+        className='relative z-50'
       >
-        <div className="fixed inset-0 bg-black/30" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
-            <DialogTitle className="text-lg font-bold mb-4 text-black">
+        <div className='fixed inset-0 bg-black/30' />
+        <div className='fixed inset-0 flex items-center justify-center p-4'>
+          <DialogPanel className='bg-white rounded p-6 w-full max-w-md'>
+            <DialogTitle className='text-lg font-bold mb-4 text-black'>
               Confirmar cambio de estado
             </DialogTitle>
-            <p className="text-sm text-black mb-4">
+            <p className='text-sm text-black mb-4'>
               ¿Estás seguro de cambiar el estado de esta tarea?
             </p>
-            <div className="flex justify-end space-x-2">
+            <div className='flex justify-end space-x-2'>
               <button
                 onClick={() => setIsConfirmCompleteOpen(false)}
-                className="px-4 py-2 border rounded text-black"
+                className='px-4 py-2 border rounded text-black'
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmToggleTaskCompletion}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
+                className='px-4 py-2 bg-blue-500 text-white rounded'
               >
                 Confirmar
               </button>
@@ -236,27 +240,27 @@ export default function HomePage() {
       <Dialog
         open={isConfirmDeleteOpen}
         onClose={() => setIsConfirmDeleteOpen(false)}
-        className="relative z-50"
+        className='relative z-50'
       >
-        <div className="fixed inset-0 bg-black/30" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
-            <DialogTitle className="text-lg font-bold mb-4 text-black">
+        <div className='fixed inset-0 bg-black/30' />
+        <div className='fixed inset-0 flex items-center justify-center p-4'>
+          <DialogPanel className='bg-white rounded p-6 w-full max-w-md'>
+            <DialogTitle className='text-lg font-bold mb-4 text-black'>
               Confirmar eliminación
             </DialogTitle>
-            <p className="text-sm text-black mb-4">
+            <p className='text-sm text-black mb-4'>
               ¿Estás seguro de eliminar esta tarea?
             </p>
-            <div className="flex justify-end space-x-2">
+            <div className='flex justify-end space-x-2'>
               <button
                 onClick={() => setIsConfirmDeleteOpen(false)}
-                className="px-4 py-2 border rounded text-black cursor-pointer"
+                className='px-4 py-2 border rounded text-black cursor-pointer'
               >
                 Cancelar
               </button>
               <button
                 onClick={() => deleteTask(taskToDelete!._id)}
-                className="px-4 py-2 bg-red-500 text-white rounded cursor-pointer"
+                className='px-4 py-2 bg-red-500 text-white rounded cursor-pointer'
               >
                 Eliminar
               </button>
@@ -269,50 +273,50 @@ export default function HomePage() {
       <Dialog
         open={isOpen}
         onClose={() => setIsOpen(false)}
-        className="relative z-50"
+        className='relative z-50'
       >
-        <div className="fixed inset-0 bg-black/30" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel className="bg-white rounded p-6 w-full max-w-md">
-            <DialogTitle className="text-lg font-bold mb-4 text-black">
-              {isEditing ? "Editar tarea" : "Nueva tarea"}
+        <div className='fixed inset-0 bg-black/30' />
+        <div className='fixed inset-0 flex items-center justify-center p-4'>
+          <DialogPanel className='bg-white rounded p-6 w-full max-w-md'>
+            <DialogTitle className='text-lg font-bold mb-4 text-black'>
+              {isEditing ? 'Editar tarea' : 'Nueva tarea'}
             </DialogTitle>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
               <div>
-                <label className="block text-sm text-black">Título</label>
+                <label className='block text-sm text-black'>Título</label>
                 <input
-                  {...register("title", { required: true })}
-                  className="w-full p-2 border rounded text-black"
+                  {...register('title', { required: true })}
+                  className='w-full p-2 border rounded text-black'
                 />
               </div>
               <div>
-                <label className="block text-sm text-black">Descripción</label>
+                <label className='block text-sm text-black'>Descripción</label>
                 <textarea
-                  {...register("description")}
-                  className="w-full p-2 border rounded text-black"
+                  {...register('description')}
+                  className='w-full p-2 border rounded text-black'
                 />
               </div>
-              <div className="flex items-center space-x-2 text-black">
-                <input type="checkbox" {...register("completed")} />
+              <div className='flex items-center space-x-2 text-black'>
+                <input type='checkbox' {...register('completed')} />
                 <label>¿Completada?</label>
               </div>
-              <div className="flex justify-end space-x-2">
+              <div className='flex justify-end space-x-2'>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 border rounded text-black cursor-pointer"
+                  className='px-4 py-2 border rounded text-black cursor-pointer'
                 >
                   Cancelar
                 </button>
                 <button
-                  type="submit"
+                  type='submit'
                   disabled={loading}
-                  className="px-4 py-2 bg-blue-500 text-white rounded flex items-center gap-2 cursor-pointer"
+                  className='px-4 py-2 bg-blue-500 text-white rounded flex items-center gap-2 cursor-pointer'
                 >
                   {loading && (
-                    <span className="loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className='loader w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
                   )}
-                  {isEditing ? "Actualizar" : "Guardar"}
+                  {isEditing ? 'Actualizar' : 'Guardar'}
                 </button>
               </div>
             </form>
@@ -320,5 +324,5 @@ export default function HomePage() {
         </div>
       </Dialog>
     </>
-  );
+  )
 }
